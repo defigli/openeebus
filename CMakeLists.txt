@@ -20,6 +20,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(OPTION_ASAN "Enable AddressSanitizer" OFF)
 option(OPTION_MDNS_USE_AVAHI_CLIENT "Enable mDNS avahi-client implementation" OFF)
+option(OPTION_LIBFUZZER "Build the SHIP message deserialization libFuzzer target" OFF)
 
 set(PROJECT_COMPILE_OPTIONS "")
 
@@ -240,6 +241,28 @@ target_link_libraries(
     ${DNS_SD_LIB}
     ${OPEN_SSL_LIBRARIES}
 )
+
+if(OPTION_LIBFUZZER)
+  if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+    message(FATAL_ERROR "OPTION_LIBFUZZER requires Clang with libFuzzer support (set CC=clang).")
+  endif()
+
+  add_executable(ship_message_deserialize_fuzzer
+    fuzz/ship_message_deserialize_fuzzer.c
+    src/common/message_buffer.c
+    src/common/string_util.c
+    src/ship/ship_connection/ship_message_deserialize.c
+  )
+  target_include_directories(ship_message_deserialize_fuzzer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_compile_options(ship_message_deserialize_fuzzer PRIVATE
+    -fsanitize=fuzzer-no-link,address,undefined
+    -fno-omit-frame-pointer
+  )
+  target_link_options(ship_message_deserialize_fuzzer PRIVATE
+    -fsanitize=fuzzer,address,undefined
+  )
+  target_link_libraries(ship_message_deserialize_fuzzer PRIVATE ${CJSON_LINK_TARGET})
+endif()
 
 add_subdirectory(examples/heat_pump)
 add_subdirectory(examples/hems)

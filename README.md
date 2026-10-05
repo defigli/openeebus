@@ -58,6 +58,22 @@ The source code in this repository implements the EEBUS protocol, based on the [
 * [Building on Windows](docs/build_windows.md)
 * [Integration Tests](docs/integration_tests.md)
 
+### Fuzzing
+
+The SHIP message deserializer has an optional libFuzzer target. Build it with
+Clang and run it with a corpus directory (each input starts with a SHIP message
+type byte followed by the JSON message):
+
+```sh
+CC=clang cmake -S . -B build-fuzz -DOPTION_LIBFUZZER=ON
+cmake --build build-fuzz --target ship_message_deserialize_fuzzer
+mkdir -p fuzz/corpus
+build-fuzz/ship_message_deserialize_fuzzer fuzz/corpus
+```
+
+Use `-max_len=65536` to cap generated inputs. Crashes are written to the current
+directory as reproducer files; rerun the fuzzer with that file to reproduce.
+
 ### Configuration
 
 * [Compile-Time Configuration](docs/configuration.md)

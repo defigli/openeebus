@@ -108,6 +108,7 @@ jobs:
     needs: tests
     env:
       VCPKG_ROOT: C:\vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: C:\vcpkg\binary-cache
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -115,8 +116,10 @@ jobs:
       - name: Cache vcpkg packages
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
-          path: C:\vcpkg\installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          path: |
+            C:\vcpkg\installed
+            C:\vcpkg\binary-cache
+          key: vcpkg-${{ runner.os }}-binary-v2-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
           restore-keys: vcpkg-${{ runner.os }}
 
       - name: Configure
